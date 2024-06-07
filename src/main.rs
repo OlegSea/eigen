@@ -69,7 +69,7 @@ fn polynomial_from_matrix(m: &Matrix) -> CubicPolynomial {
                     ),
                 ),
             ),
-        ),
+        ).into(),
         c: m[1][1].mul_add(
             -m[2][2],
             m[0][0].mul_add(
@@ -79,9 +79,9 @@ fn polynomial_from_matrix(m: &Matrix) -> CubicPolynomial {
                     m[0][1].mul_add(m[1][0], m[0][2].mul_add(m[2][0], m[1][2] * m[2][1])),
                 ),
             ),
-        ),
-        b: m[0][0] + m[1][1] + m[2][2],
-        a: -1.0,
+        ).into(),
+        b: (m[0][0] + m[1][1] + m[2][2]).into(),
+        a: (-1.0).into(),
     }
 }
 
