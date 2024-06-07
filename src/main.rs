@@ -1,10 +1,8 @@
 use std::{
-    fmt::Display,
-    fs::read_to_string,
-    path::{Path, PathBuf},
+    arch::x86_64, fmt::Display, fs::read_to_string, path::{Path, PathBuf}
 };
 
-use num::Complex;
+use num::{traits::ConstZero, Complex, Zero};
 
 #[derive(Debug)]
 struct CubicPolynomial {
@@ -102,26 +100,40 @@ fn find_x(
 ) -> Complex<f32> {
     let epsilon = (cf_from_int(-1) + cf_from_int(-3).sqrt()) / cf_from_int(2);
     let mc = c * epsilon.powi(n);
-    (-1.0 / (3.0 * a)) * (b + mc + (delta_0 / mc))
+
+    match c {
+        Complex::ZERO => -b / (cf_from_int(3) * a),
+        _ => (-1.0 / (3.0 * a)) * (b + mc + (delta_0 / mc))
+    }
 }
 
 fn solve_cubic(p: &CubicPolynomial) -> (Complex<f32>, Complex<f32>, Complex<f32>) {
-    let delta_0: Complex<f32> = p.b.powu(2) - cf_from_int(3) * p.a * p.c;
-    let delta_1: Complex<f32> = cf_from_int(2) * p.b.powu(3) - cf_from_int(9) * p.a * p.b * p.c
-        + cf_from_int(27) * p.a.powu(2) * p.d;
+    let deltas = (
+        p.b.powu(2) - cf_from_int(3) * p.a * p.c,
+        cf_from_int(2) * p.b.powu(3) - cf_from_int(9) * p.a * p.b * p.c
+            + cf_from_int(27) * p.a.powu(2) * p.d,
+    );
 
-    let sq: Complex<f32> = delta_1.powu(2) - cf_from_int(4) * delta_0.powu(3);
+    let sq: Complex<f32> = deltas.1.powu(2) - cf_from_int(4) * deltas.0.powu(3);
 
-    let mut c = cf_from_int(0);
+    // let mut c = cf_from_int(0);
 
-    if delta_0 != cf_from_int(0) && delta_1 != cf_from_int(0) {
-        c = ((delta_1 + sq.sqrt()) / 2.0).powf(1.0 / 3.0);
-        if c == cf_from_int(0) {
-            c = ((delta_1 - sq.sqrt()) / 2.0).powf(1.0 / 3.0);
+    // if delta_0 != cf_from_int(0) && delta_1 != cf_from_int(0) {
+    //     c = ((delta_1 + sq.sqrt()) / 2.0).powf(1.0 / 3.0);
+    //     if c == cf_from_int(0) {
+    //         c = ((delta_1 - sq.sqrt()) / 2.0).powf(1.0 / 3.0);
+    //     }
+    // }
+
+    let c = match deltas {
+        (Complex::ZERO, Complex::ZERO) => cf_from_int(0),
+        _ => {
+            let try_c1 = ((deltas.1 + sq.sqrt()) / 2.0).powf(1.0 / 3.0);
+            if try_c1 != Complex::ZERO { try_c1 } else {((deltas.1 - sq.sqrt()) / 2.0).powf(1.0 / 3.0) }
         }
-    }
+    };
 
-    let v: Vec<Complex<f32>> = (0..=2).map(|n| find_x(p.a, p.b, c, delta_0, n)).collect();
+    let v: Vec<Complex<f32>> = (0..=2).map(|n| find_x(p.a, p.b, c, deltas.0, n)).collect();
     (v[0], v[1], v[2])
 }
 
