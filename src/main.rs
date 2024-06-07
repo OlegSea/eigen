@@ -1,8 +1,12 @@
+#![allow(clippy::cast_precision_loss)]
+
 use std::{
-    arch::x86_64, fmt::Display, fs::read_to_string, path::{Path, PathBuf}
+    fmt::Display,
+    fs::read_to_string,
+    path::{Path, PathBuf},
 };
 
-use num::{traits::ConstZero, Complex, Zero};
+use num::Complex;
 
 #[derive(Debug)]
 struct CubicPolynomial {
@@ -103,7 +107,7 @@ fn find_x(
 
     match c {
         Complex::ZERO => -b / (cf_from_int(3) * a),
-        _ => (-1.0 / (3.0 * a)) * (b + mc + (delta_0 / mc))
+        _ => (-1.0 / (3.0 * a)) * (b + mc + (delta_0 / mc)),
     }
 }
 
@@ -116,20 +120,14 @@ fn solve_cubic(p: &CubicPolynomial) -> (Complex<f32>, Complex<f32>, Complex<f32>
 
     let sq: Complex<f32> = deltas.1.powu(2) - cf_from_int(4) * deltas.0.powu(3);
 
-    // let mut c = cf_from_int(0);
-
-    // if delta_0 != cf_from_int(0) && delta_1 != cf_from_int(0) {
-    //     c = ((delta_1 + sq.sqrt()) / 2.0).powf(1.0 / 3.0);
-    //     if c == cf_from_int(0) {
-    //         c = ((delta_1 - sq.sqrt()) / 2.0).powf(1.0 / 3.0);
-    //     }
-    // }
-
-    let c = match deltas {
-        (Complex::ZERO, Complex::ZERO) => cf_from_int(0),
-        _ => {
-            let try_c1 = ((deltas.1 + sq.sqrt()) / 2.0).powf(1.0 / 3.0);
-            if try_c1 != Complex::ZERO { try_c1 } else {((deltas.1 - sq.sqrt()) / 2.0).powf(1.0 / 3.0) }
+    let c = if deltas == (Complex::ZERO, Complex::ZERO) {
+        cf_from_int(0)
+    } else {
+        let try_c1 = ((deltas.1 + sq.sqrt()) / 2.0).powf(1.0 / 3.0);
+        if try_c1 == Complex::ZERO {
+            ((deltas.1 - sq.sqrt()) / 2.0).powf(1.0 / 3.0)
+        } else {
+            try_c1
         }
     };
 
