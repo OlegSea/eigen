@@ -4,12 +4,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use num::Complex;
+
 #[derive(Debug)]
 struct CubicPolynomial {
-    a: f32,
-    b: f32,
-    c: f32,
-    d: f32,
+    a: Complex<f32>,
+    b: Complex<f32>,
+    c: Complex<f32>,
+    d: Complex<f32>,
 }
 
 #[derive(Debug, Clone)]
@@ -55,18 +57,35 @@ fn matrix_from_string(matrix_text: &str) -> Result<Matrix, MatrixReadError> {
 
 fn polynomial_from_matrix(m: &Matrix) -> CubicPolynomial {
     CubicPolynomial {
-        d: m[1][1] * m[0][0] * m[2][2] + m[0][1] * m[1][2] * m[2][0] + m[0][2] * m[1][0] * m[2][1]
-            - m[1][1] * m[0][2] * m[2][0]
-            - m[0][0] * m[1][2] * m[2][1]
-            - m[0][1] * m[1][0] * m[2][2],
-        c: m[0][2] * m[2][0] + m[1][2] * m[2][1] + m[0][1] * m[1][0]
-            - m[1][1] * m[0][0]
-            - m[0][0] * m[2][2]
-            - m[1][1] * m[2][2],
+        d: (m[0][1] * m[1][0]).mul_add(
+            -m[2][2],
+            (m[0][0] * m[1][2]).mul_add(
+                -m[2][1],
+                (m[1][1] * m[0][2]).mul_add(
+                    -m[2][0],
+                    (m[0][2] * m[1][0]).mul_add(
+                        m[2][1],
+                        (m[1][1] * m[0][0]).mul_add(m[2][2], m[0][1] * m[1][2] * m[2][0]),
+                    ),
+                ),
+            ),
+        ),
+        c: m[1][1].mul_add(
+            -m[2][2],
+            m[0][0].mul_add(
+                -m[2][2],
+                m[1][1].mul_add(
+                    -m[0][0],
+                    m[0][1].mul_add(m[1][0], m[0][2].mul_add(m[2][0], m[1][2] * m[2][1])),
+                ),
+            ),
+        ),
         b: m[0][0] + m[1][1] + m[2][2],
         a: -1.0,
     }
 }
+
+fn solve_cubic(p: CubicPolynomial) -> (Complex<f32>, Complex<f32>, Complex<f32>) {}
 
 fn main() {
     println!("Hello, world!");
