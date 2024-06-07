@@ -6,6 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use itertools::Itertools;
 use num::Complex;
 
 #[derive(Debug)]
@@ -29,7 +30,6 @@ fn cf_from_int(num: i32) -> Complex<f32> {
     Into::<Complex<f32>>::into(num as f32)
 }
 
-// #[derive(Debug)];
 type Matrix = [[f32; 3]; 3];
 
 fn read_file(file_path: &Path) -> String {
@@ -131,12 +131,10 @@ fn solve_cubic(p: &CubicPolynomial) -> (Complex<f32>, Complex<f32>, Complex<f32>
         }
     };
 
-    let v: Vec<Complex<f32>> = (0..=2).map(|n| find_x(p.a, p.b, c, deltas.0, n)).collect();
-    (v[0], v[1], v[2])
+    (0..=2).map(|n| find_x(p.a, p.b, c, deltas.0, n)).collect_tuple().unwrap()
 }
 
 fn main() {
-    println!("Hello, world!");
     let pathbuf = PathBuf::from("input.txt");
     let file_text = read_file(&pathbuf);
     let matrix = matrix_from_string(&file_text).unwrap();
