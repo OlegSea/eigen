@@ -131,7 +131,10 @@ fn solve_cubic(p: &CubicPolynomial) -> (Complex<f32>, Complex<f32>, Complex<f32>
         }
     };
 
-    (0..=2).map(|n| find_x(p.a, p.b, c, deltas.0, n)).collect_tuple().unwrap()
+    (0..=2)
+        .map(|n| find_x(p.a, p.b, c, deltas.0, n))
+        .collect_tuple()
+        .unwrap()
 }
 
 fn main() {
