@@ -6,7 +6,6 @@ use eigen::{
     io::file_into_matrix
 };
 
-
 fn main() {
     let pathbuf = PathBuf::from("input.txt");
 

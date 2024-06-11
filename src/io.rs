@@ -27,7 +27,7 @@ pub fn vec_matrix_from_string(matrix_text: &str) -> Result<VecMatrix, MatrixRead
 ///
 /// # Errors
 ///
-/// This function will return an error if there is a wrong number of rows/columns in a given VecMatrix.
+/// This function will return an error if there is a wrong number of rows/columns in a given `VecMatrix`.
 pub fn matrix_from_vec(matrix_vec: &VecMatrix) -> Result<Matrix, MatrixReadError> {
     let rows = matrix_vec.len();
     if rows != 3 {
