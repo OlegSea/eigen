@@ -1,10 +1,7 @@
 use std::path::PathBuf;
 
-use eigen::{
-    polynomial_from_matrix,
-    solve_cubic,
-    io::file_into_matrix
-};
+use eigen::{find_eigenvec, io::file_into_matrix, polynomial_from_matrix, solve_cubic};
+use itertools::Itertools;
 
 fn main() {
     let pathbuf = PathBuf::from("input.txt");
@@ -17,7 +14,12 @@ fn main() {
 
     println!("{polynomial:?}");
 
-    let r = solve_cubic(&polynomial);
+    let eigenvalues = solve_cubic(&polynomial);
 
-    println!("{r:?}");
+    println!("{eigenvalues:?}");
+
+    for i in eigenvalues {
+        let vecs = find_eigenvec(&matrix, i);
+        println!("Eigenvectors for value {i:?}: {vecs:?}");
+    }
 }

@@ -1,6 +1,7 @@
 use itertools::Itertools;
+use num::traits::MulAdd;
 use num::Complex;
-use types::{cf_from_int, CubicPolynomial, Matrix};
+use types::{cf_from_int, CubicPolynomial, EigenVec, Matrix};
 
 pub mod io;
 pub mod types;
@@ -8,34 +9,30 @@ pub mod types;
 #[must_use]
 pub fn polynomial_from_matrix(m: &Matrix) -> CubicPolynomial {
     CubicPolynomial {
-        d: (m[0][1] * m[1][0])
-            .mul_add(
-                -m[2][2],
-                (m[0][0] * m[1][2]).mul_add(
-                    -m[2][1],
-                    (m[1][1] * m[0][2]).mul_add(
-                        -m[2][0],
-                        (m[0][2] * m[1][0]).mul_add(
-                            m[2][1],
-                            (m[1][1] * m[0][0]).mul_add(m[2][2], m[0][1] * m[1][2] * m[2][0]),
-                        ),
+        d: (m[0][1] * m[1][0]).mul_add(
+            -m[2][2],
+            (m[0][0] * m[1][2]).mul_add(
+                -m[2][1],
+                (m[1][1] * m[0][2]).mul_add(
+                    -m[2][0],
+                    (m[0][2] * m[1][0]).mul_add(
+                        m[2][1],
+                        (m[1][1] * m[0][0]).mul_add(m[2][2], m[0][1] * m[1][2] * m[2][0]),
                     ),
                 ),
-            )
-            .into(),
-        c: m[1][1]
-            .mul_add(
+            ),
+        ),
+        c: m[1][1].mul_add(
+            -m[2][2],
+            m[0][0].mul_add(
                 -m[2][2],
-                m[0][0].mul_add(
-                    -m[2][2],
-                    m[1][1].mul_add(
-                        -m[0][0],
-                        m[0][1].mul_add(m[1][0], m[0][2].mul_add(m[2][0], m[1][2] * m[2][1])),
-                    ),
+                m[1][1].mul_add(
+                    -m[0][0],
+                    m[0][1].mul_add(m[1][0], m[0][2].mul_add(m[2][0], m[1][2] * m[2][1])),
                 ),
-            )
-            .into(),
-        b: (m[0][0] + m[1][1] + m[2][2]).into(),
+            ),
+        ),
+        b: (m[0][0] + m[1][1] + m[2][2]),
         a: (-1.0).into(),
     }
 }
@@ -57,7 +54,7 @@ fn find_x(
 }
 
 #[must_use]
-pub fn solve_cubic(p: &CubicPolynomial) -> (Complex<f32>, Complex<f32>, Complex<f32>) {
+pub fn solve_cubic(p: &CubicPolynomial) -> Vec<Complex<f32>> {
     let deltas = (
         p.b.powu(2) - cf_from_int(3) * p.a * p.c,
         cf_from_int(2) * p.b.powu(3) - cf_from_int(9) * p.a * p.b * p.c
@@ -77,7 +74,41 @@ pub fn solve_cubic(p: &CubicPolynomial) -> (Complex<f32>, Complex<f32>, Complex<
         }
     };
 
+    let mut result = Vec::<Complex<f32>>::new();
+
     (0..=2)
         .map(|n| find_x(p.a, p.b, c, deltas.0, n))
-        .collect_tuple().map_or_else(|| unreachable!(), |a| a)
+        .for_each(|x| {
+            if !result.contains(&x) {
+                result.push(x);
+            }
+        });
+    result
+}
+
+#[must_use]
+pub fn singular_matrix_from_matrix(m: &Matrix, eigenvalue: Complex<f32>) -> Matrix {
+    let mut result_matrix = *m;
+
+    for (i, _) in m.iter().enumerate() {
+        result_matrix[i][i] -= eigenvalue;
+    }
+
+    result_matrix
+}
+
+
+// TODO: блять
+#[must_use]
+pub fn find_eigenvec(m: &Matrix, eigenvalue: Complex<f32>) -> EigenVec {
+    let sm = singular_matrix_from_matrix(m, eigenvalue);
+
+    let p =
+        (sm[1][2] * sm[0][0] - sm[0][2] * sm[1][0]) / (sm[1][1] * sm[0][0] - sm[0][1] * sm[1][0]);
+
+    [
+        -sm[0][2] / sm[0][0] + (sm[0][1] / sm[0][0]) * p,
+        -p,
+        cf_from_int(1),
+    ]
 }

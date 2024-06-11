@@ -26,5 +26,7 @@ pub const fn cf_from_int(num: i32) -> Complex<f32> {
     Complex::new(num as f32, 0.0)
 }
 
-pub type Matrix = [[f32; 3]; 3];
-pub type VecMatrix = Vec<Vec<f32>>;
+pub type Matrix = [[Complex<f32>; 3]; 3];
+pub type VecMatrix = Vec<Vec<Complex<f32>>>;
+
+pub type EigenVec = [Complex<f32>; 3];

@@ -1,7 +1,8 @@
 use std::{fs::read_to_string, path::Path};
 
-use crate::types::{Matrix, MatrixReadError, VecMatrix};
+use crate::types::{cf_from_int, Matrix, MatrixReadError, VecMatrix};
 use itertools::Itertools;
+use num::Complex;
 
 /// .
 ///
@@ -14,7 +15,7 @@ pub fn vec_matrix_from_string(matrix_text: &str) -> Result<VecMatrix, MatrixRead
         .map(|line| {
             line.split(' ')
                 .map(|x| {
-                    x.parse::<f32>()
+                    x.parse::<Complex<f32>>()
                         .map_err(|_| MatrixReadError::NonFloat(x.to_string()))
                 })
                 .try_collect()
@@ -34,7 +35,7 @@ pub fn matrix_from_vec(matrix_vec: &VecMatrix) -> Result<Matrix, MatrixReadError
         return Err(MatrixReadError::WrongRows(rows));
     }
 
-    let mut matrix: Matrix = [[0.0; 3]; 3];
+    let mut matrix: Matrix = [[cf_from_int(0); 3]; 3];
 
     for (i, row) in matrix_vec.iter().enumerate() {
         let cols = row.len();
